@@ -1,7 +1,6 @@
-var define, requireModule, require, requirejs;
+var define, requireModule, requirejs;
 
 (function() {
-
   var _isArray;
   if (!Array.isArray) {
     _isArray = function (x) {
@@ -9,6 +8,11 @@ var define, requireModule, require, requirejs;
     };
   } else {
     _isArray = Array.isArray;
+  }
+
+  if (window.global && window.global.module) {
+    var require;
+    console.log('defined local require, instead of global.');
   }
 
   var registry = {}, seen = {};
@@ -23,7 +27,6 @@ var define, requireModule, require, requirejs;
       finalizer();
     }
   }
-
 
   function Module(name, deps, callback, exports) {
     var defaultDeps = ['require', 'exports', 'module'];
@@ -145,3 +148,19 @@ var define, requireModule, require, requirejs;
     seen = state = {};
   };
 })();
+
+if (window.require) {
+  var originalRequire = window.require;
+
+  window.require = hookedRequire;
+
+  function hookedRequire(path) {
+    try {
+      return requirejs(path);
+    } catch (err) {
+      return originalRequire(path);
+    }
+  }
+} else {
+  var require = requireModule;
+}
